@@ -12,13 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteNote = exports.updateNote = exports.createNote = exports.getNoteById = exports.getNotes = void 0;
-const noteModel_1 = __importDefault(require("../models/noteModel"));
-const errorTypes_1 = require("../utils/errorTypes");
-// Get all notes
+exports.deleteNote = exports.updateNote = exports.createNote = exports.getNotesByCategory = exports.getNoteById = exports.getNotes = void 0;
+const noteService_1 = __importDefault(require("../services/noteService"));
 const getNotes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const notes = yield noteModel_1.default.find().sort({ createdAt: -1 });
+        const notes = yield noteService_1.default.getAllNotes();
         res.status(200).json(notes);
     }
     catch (error) {
@@ -26,13 +24,9 @@ const getNotes = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getNotes = getNotes;
-// Get a specific note by ID
 const getNoteById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const note = yield noteModel_1.default.findById(req.params.id);
-        if (!note) {
-            return next(new errorTypes_1.NotFoundError(`Note with id ${req.params.id} not found`));
-        }
+        const note = yield noteService_1.default.getNoteById(req.params.id);
         res.status(200).json(note);
     }
     catch (error) {
@@ -40,17 +34,19 @@ const getNoteById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getNoteById = getNoteById;
-// Create a new note
+const getNotesByCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const notes = yield noteService_1.default.getNotesByCategory(req.params.categoryId);
+        res.status(200).json(notes);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.getNotesByCategory = getNotesByCategory;
 const createNote = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { title, content } = req.body;
-        if (!title || !content) {
-            return next(new errorTypes_1.BadRequestError('Title and content are required'));
-        }
-        const note = yield noteModel_1.default.create({
-            title,
-            content,
-        });
+        const note = yield noteService_1.default.createNote(req.body);
         res.status(201).json(note);
     }
     catch (error) {
@@ -58,32 +54,19 @@ const createNote = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.createNote = createNote;
-// Update a note
 const updateNote = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { title, content } = req.body;
-        const note = yield noteModel_1.default.findById(req.params.id);
-        if (!note) {
-            return next(new errorTypes_1.NotFoundError(`Note with id ${req.params.id} not found`));
-        }
-        note.title = title || note.title;
-        note.content = content || note.content;
-        const updatedNote = yield note.save();
-        res.status(200).json(updatedNote);
+        const note = yield noteService_1.default.updateNote(req.params.id, req.body);
+        res.status(200).json(note);
     }
     catch (error) {
         next(error);
     }
 });
 exports.updateNote = updateNote;
-// Delete a note
 const deleteNote = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const note = yield noteModel_1.default.findById(req.params.id);
-        if (!note) {
-            return next(new errorTypes_1.NotFoundError(`Note with id ${req.params.id} not found`));
-        }
-        yield note.deleteOne();
+        yield noteService_1.default.deleteNote(req.params.id);
         res.status(200).json({ message: 'Note deleted successfully' });
     }
     catch (error) {

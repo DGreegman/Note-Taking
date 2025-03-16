@@ -34,26 +34,30 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const noteSchema = new mongoose_1.Schema({
-    title: {
+const categorySchema = new mongoose_1.Schema({
+    name: {
         type: String,
-        required: [true, 'Title is required'],
+        required: [true, 'Category name is required'],
         trim: true,
-        maxlength: [100, 'Title cannot be more than 100 characters'],
+        maxlength: [50, 'Category name cannot be more than 50 characters'],
+        unique: true
     },
-    content: {
+    description: {
         type: String,
-        required: [true, 'Content is required'],
         trim: true,
+        maxlength: [200, 'Description cannot be more than 200 characters']
     },
-    categoryId: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Category',
-        default: null
+    color: {
+        type: String,
+        default: '#000000',
+        validate: {
+            validator: function (v) {
+                return /^#([0-9a-f]{3}){1,2}$/i.test(v);
+            },
+            message: props => `${props.value} is not a valid hex color!`
+        }
     }
 }, {
-    timestamps: true,
+    timestamps: true
 });
-// Index to improve query performance for finding notes by category
-noteSchema.index({ categoryId: 1 });
-exports.default = mongoose_1.default.model('Note', noteSchema);
+exports.default = mongoose_1.default.model('Category', categorySchema);

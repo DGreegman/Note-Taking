@@ -1,13 +1,12 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
+import { INoteBase } from '../types';
 
-export interface INote extends Document {
-  title: string;
-  content: string;
+export interface INoteModel extends INoteBase, Document {
   createdAt: Date;
   updatedAt: Date;
 }
 
-const noteSchema = new Schema<INote>(
+const noteSchema = new Schema<INoteModel>(
   {
     title: {
       type: String,
@@ -20,10 +19,18 @@ const noteSchema = new Schema<INote>(
       required: [true, 'Content is required'],
       trim: true,
     },
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null
+    }
   },
   {
     timestamps: true,
   }
 );
 
-export default mongoose.model<INote>('Note', noteSchema);
+// Index to improve query performance for finding notes by category
+noteSchema.index({ categoryId: 1 });
+
+export default mongoose.model<INoteModel>('Note', noteSchema);
